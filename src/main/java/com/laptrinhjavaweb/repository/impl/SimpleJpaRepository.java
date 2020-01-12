@@ -76,8 +76,6 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 		}
 	}
 	
-	
-	
 	@Override
 	public List<T> findAll(Map<String, Object> params, Object... where) {
 		StringBuilder sql = new StringBuilder("select * from " + this.tableName + " A where 1=1 ");
@@ -239,8 +237,6 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 		}
 		return id;
 	}
-
-	
 	
 	@Override
 	public Long insert(T entity,List<Object> entities) {
@@ -314,6 +310,120 @@ public class SimpleJpaRepository<T> implements JpaRepository<T> {
 			}
 		}
 		return id;
+	}
+
+	@Override
+	public String delete(Long id) {
+		String sql = "SELECT " + 
+				"TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME, REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME " + 
+				"FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " + 
+				"WHERE REFERENCED_TABLE_NAME = '"+this.tableName+"'";
+		//sql = createSqlFindAll(params, sql);
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		try {
+			connection = EntityManagerFactory.getConnection();
+			connection.setAutoCommit(false);
+			statement = connection.prepareStatement(sql);
+			resultSet = statement.executeQuery();
+			while(resultSet.next()) {
+				String tableName = resultSet.getString("TABLE_NAME");
+				String columnName = resultSet.getString("COLUMN_NAME");
+				sql = "DELETE FROM " + tableName + " WHERE " + columnName + "="+id+"";
+				statement = connection.prepareStatement(sql);
+				statement.executeUpdate();
+			}
+			sql = "DELETE FROM " + this.tableName + " where id = "+id;
+			int i = connection.prepareStatement(sql).executeUpdate();
+			connection.commit();
+			return i + " Record(s) deleted successfully";
+		} catch (Exception e) {
+			if (connection != null) {
+				try {
+					connection.rollback();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
+
+		} finally {
+			try {
+				if (connection != null) {
+					connection.close();
+				}
+				if (statement != null) {
+					statement.close();
+				}
+				if (resultSet != null) {
+					resultSet.close();
+				}
+			} catch (SQLException e) {
+				return "FAIL";
+			}
+		}
+		return "FAIL";
+	}
+	
+	@Override
+	public String delete(Long[] ids) {
+		String sql = "";
+		//sql = createSqlFindAll(params, sql);
+		Connection connection = null;
+		PreparedStatement statement = null;
+		ResultSet resultSet = null;
+		try {
+			connection = EntityManagerFactory.getConnection();
+			connection.setAutoCommit(false);
+			StringBuilder sbIds = new StringBuilder();
+			for(Long id:ids) {
+				sql = "SELECT " + 
+						"TABLE_NAME,COLUMN_NAME,CONSTRAINT_NAME, REFERENCED_TABLE_NAME,REFERENCED_COLUMN_NAME " + 
+						"FROM INFORMATION_SCHEMA.KEY_COLUMN_USAGE " + 
+						"WHERE REFERENCED_TABLE_NAME = '"+this.tableName+"'";
+				statement = connection.prepareStatement(sql);
+				resultSet = statement.executeQuery();
+				while(resultSet.next()) {
+					String tableName = resultSet.getString("TABLE_NAME");
+					String columnName = resultSet.getString("COLUMN_NAME");
+					sql = "DELETE FROM " + tableName + " WHERE " + columnName + "="+id+"";
+					statement = connection.prepareStatement(sql);
+					statement.executeUpdate();
+				}
+				if(sbIds.length() > 0) {
+					sbIds.append(",");
+				}
+				sbIds.append(id);
+			}
+			sql = "DELETE FROM " + this.tableName + " where id IN ("+sbIds.toString()+")";
+			int numOfRecord = connection.prepareStatement(sql).executeUpdate();
+			connection.commit();
+			return numOfRecord + " Record(s) deleted successfully";
+		} catch (Exception e) {
+			if (connection != null) {
+				try {
+					connection.rollback();
+				} catch (SQLException e1) {
+					e1.printStackTrace();
+				}
+			}
+
+		} finally {
+			try {
+				if (connection != null) {
+					connection.close();
+				}
+				if (statement != null) {
+					statement.close();
+				}
+				if (resultSet != null) {
+					resultSet.close();
+				}
+			} catch (SQLException e) {
+				return "FAIL";
+			}
+		}
+		return "FAIL";
 	}
 
 	private void setParameters(PreparedStatement statement, Object entity)

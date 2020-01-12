@@ -44,6 +44,16 @@ public class BuildingService implements IBuildingService {
 						.convertToDTO(item, rentAreaRepository.findByBuildingId(item.getId())))
 				.collect(Collectors.toList());
 	}
+	
+	@Override
+	public String delete(Long id) {
+		return buildingRepository.delete(id);
+	}
+
+	@Override
+	public String delete(Long[] ids) {
+		return buildingRepository.delete(ids);
+	}
 
 	@Override
 	public BuildingDTO insert(BuildingDTO buildingDTO) {

@@ -30,6 +30,7 @@ public class BuildingDTO extends AbstractDTO{
 	private String areaRentTo;
     private String[] buildingType = new String[] {};
     private String staffId;
+    private Long[] ids;
 
 	public String getName() {
 		return name;
@@ -253,5 +254,13 @@ public class BuildingDTO extends AbstractDTO{
 
 	public void setAreaRent(String areaRent) {
 		this.areaRent = areaRent;
+	}
+
+	public Long[] getIds() {
+		return ids;
+	}
+
+	public void setIds(Long[] ids) {
+		this.ids = ids;
 	}
 }

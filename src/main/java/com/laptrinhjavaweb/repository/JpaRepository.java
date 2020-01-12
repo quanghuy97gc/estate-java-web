@@ -3,7 +3,6 @@ package com.laptrinhjavaweb.repository;
 import java.util.List;
 import java.util.Map;
 
-import com.laptrinhjavaweb.annotation.Entity;
 import com.laptrinhjavaweb.paging.Pageable;
 
 public interface JpaRepository<T> {
@@ -13,4 +12,6 @@ public interface JpaRepository<T> {
 	T findById(Long id);
 	Long insert(T entity,List<Object> entities);
 	Long insert(T entity);
+	String delete(Long id);
+	String delete(Long[] ids);
 }

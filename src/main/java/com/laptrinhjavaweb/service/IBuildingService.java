@@ -10,4 +10,6 @@ public interface IBuildingService {
 	List<BuildingDTO> findAll(BuildingSearchBuilder fieldSearch,Pageable pageable);
 	BuildingDTO findById(Long id);
 	BuildingDTO insert(BuildingDTO buildingDTO);
+	String delete(Long id);
+	String delete(Long[] ids);
 }
