@@ -15,7 +15,7 @@ public class BuildingRepository extends SimpleJpaRepository<BuildingEntity> impl
 	@Override
 	public List<BuildingEntity> findAll(Map<String, Object> params, Pageable pageable,
 			BuildingSearchBuilder fieldSerch) {
-		StringBuilder sqlSearch = new StringBuilder("select * from building A ");
+		StringBuilder sqlSearch = new StringBuilder("select A.* from building A ");
 
 		if (StringUtils.isNotBlank(fieldSerch.getStaffId())) {
 			sqlSearch.append(" INNER JOIN assignmentstaff s on s.buildingid = A.id");

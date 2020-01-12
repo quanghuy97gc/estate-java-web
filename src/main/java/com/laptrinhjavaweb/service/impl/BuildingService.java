@@ -1,6 +1,7 @@
 package com.laptrinhjavaweb.service.impl;
 
 import java.lang.reflect.Field;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -13,35 +14,35 @@ import com.laptrinhjavaweb.builder.BuildingSearchBuilder;
 import com.laptrinhjavaweb.converter.BuildingConverter;
 import com.laptrinhjavaweb.dto.BuildingDTO;
 import com.laptrinhjavaweb.entity.BuildingEntity;
+import com.laptrinhjavaweb.entity.RentAreaEntity;
 import com.laptrinhjavaweb.paging.Pageable;
 import com.laptrinhjavaweb.repository.IBuildingRepository;
+import com.laptrinhjavaweb.repository.IRentAreaRepository;
 import com.laptrinhjavaweb.repository.impl.BuildingRepository;
+import com.laptrinhjavaweb.repository.impl.RentAreaRepository;
 import com.laptrinhjavaweb.service.IBuildingService;
 
 public class BuildingService implements IBuildingService {
 
 	private IBuildingRepository buildingRepository;
 	private BuildingConverter buildingConverter;
+	private IRentAreaRepository rentAreaRepository;
 
 	public BuildingService() {
 		buildingRepository = new BuildingRepository();
 		buildingConverter = new BuildingConverter();
+		rentAreaRepository = new RentAreaRepository();
 	}
 	
 	@Override
 	public List<BuildingDTO> findAll(BuildingSearchBuilder fieldSearch, Pageable pageable) {
-		// java 7
-		/*
-		 * List<BuildingDTO> buildingDTOs = new ArrayList<BuildingDTO>();
-		 * List<BuildingEntity> buildingEntities = buildingRepository.findAll();
-		 * for(BuildingEntity item:buildingEntities) {
-		 * buildingDTOs.add(buildingConverter.convertToDTO(item)); }
-		 */
 		// java 8
-		//BuildingConverter buildingConverter = new BuildingConverter();
 		Map<String, Object> properties = convertToMapProperties(fieldSearch);
-		return buildingRepository.findAll(properties, pageable, fieldSearch).stream()
-				.map(item -> buildingConverter.convertToDTO(item)).collect(Collectors.toList());
+		List<BuildingEntity> buildingEntities = buildingRepository.findAll(properties, pageable,fieldSearch);
+		return buildingEntities.stream()
+				.map(item -> buildingConverter
+						.convertToDTO(item, rentAreaRepository.findByBuildingId(item.getId())))
+				.collect(Collectors.toList());
 	}
 
 	@Override
@@ -49,13 +50,22 @@ public class BuildingService implements IBuildingService {
 		BuildingEntity buildingEntity = buildingConverter.convertToEntity(buildingDTO);
 		buildingEntity.setCreatedBy("quanghuy");
 		buildingEntity.setCreatedDate(new Date());
-		Long id = buildingRepository.insert(buildingEntity);
-		return buildingConverter.convertToDTO(buildingRepository.findById(id));
+		List<Object> rentAreaEntities = new ArrayList<>();
+		
+		String[] areaStr = buildingDTO.getAreaRent().split(",");
+		for(String item : areaStr) {
+			RentAreaEntity rentAreaEntity = new RentAreaEntity();
+			rentAreaEntity.setValue(Integer.valueOf(item));
+			rentAreaEntities.add(rentAreaEntity);
+		}
+		
+		Long id = buildingRepository.insert(buildingEntity,rentAreaEntities);
+		return findById(id);
 	}
 	
 	@Override
 	public BuildingDTO findById(Long id) {
-		return buildingConverter.convertToDTO(buildingRepository.findById(id));
+		return buildingConverter.convertToDTO(buildingRepository.findById(id),rentAreaRepository.findByBuildingId(id));
 	}
 
 	private Map<String, Object> convertToMapProperties(BuildingSearchBuilder fieldSearch) {
@@ -77,7 +87,4 @@ public class BuildingService implements IBuildingService {
 		}
 		return properties;
 	}
-
-
-
 }

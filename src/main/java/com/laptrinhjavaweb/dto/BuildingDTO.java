@@ -22,6 +22,7 @@ public class BuildingDTO extends AbstractDTO{
     private String timeDecorator;
     private String managerName;
     private String managerPhone;
+    private String areaRent;
     private String type;
 	private String costRentFrom;
 	private String costRentTo;
@@ -244,5 +245,13 @@ public class BuildingDTO extends AbstractDTO{
 
 	public void setStaffId(String staffId) {
 		this.staffId = staffId;
+	}
+
+	public String getAreaRent() {
+		return areaRent;
+	}
+
+	public void setAreaRent(String areaRent) {
+		this.areaRent = areaRent;
 	}
 }
